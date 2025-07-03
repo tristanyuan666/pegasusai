@@ -433,6 +433,7 @@ export async function createOrUpdateUser(
   user: User,
 ): Promise<UserProfile | null> {
   const supabase = await createClient();
+  if (!supabase) return null;
 
   const userData = {
     user_id: user.id,

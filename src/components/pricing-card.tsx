@@ -331,8 +331,10 @@ export default function PricingCard({
         let retryCount = 0;
         const maxRetries = 2;
 
+        if (!supabase) throw new Error("Supabase client not available");
         while (retryCount <= maxRetries) {
           try {
+            if (!supabase) throw new Error("Supabase client not available during retry");
             const result = await supabase.functions.invoke(
               "create-checkout",
               {

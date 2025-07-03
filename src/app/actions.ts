@@ -27,6 +27,10 @@ export const signUpAction = async (formData: FormData) => {
   try {
     const supabase = await createClient();
 
+    if (!supabase) {
+      return { error: "Authentication service is not available. Please try again later." };
+    }
+
     console.log("Attempting to sign up user:", { email, fullName });
 
     const {

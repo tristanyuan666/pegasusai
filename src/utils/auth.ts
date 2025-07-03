@@ -399,6 +399,13 @@ export async function checkUsageLimit(
   // Calculate current usage based on limit type
   if (limitType === "posts_per_month") {
     const supabase = await createClient();
+    if (!supabase) {
+      return {
+        current: 0,
+        limit,
+        exceeded: limit !== -1 && 0 >= limit,
+      };
+    }
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);

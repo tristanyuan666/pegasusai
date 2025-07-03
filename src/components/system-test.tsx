@@ -254,9 +254,16 @@ export default function SystemTest({ user }: SystemTestProps) {
           if (!user) {
             return { success: true, message: "Skipped - no user logged in" };
           }
+          if (!supabase) {
+            return {
+              success: false,
+              message: "Supabase client not available",
+              details: "Social connections unavailable",
+            };
+          }
           try {
             const { data, error } = await supabase
-              .from("social_connections")
+              ?.from("social_connections")
               .select("*")
               .eq("user_id", user.id);
 
@@ -286,9 +293,16 @@ export default function SystemTest({ user }: SystemTestProps) {
           if (!user) {
             return { success: true, message: "Skipped - no user logged in" };
           }
+          if (!supabase) {
+            return {
+              success: false,
+              message: "Supabase client not available",
+              details: "Content queue unavailable",
+            };
+          }
           try {
             const { data, error } = await supabase
-              .from("content_queue")
+              ?.from("content_queue")
               .select("*")
               .eq("user_id", user.id)
               .limit(5);
@@ -319,9 +333,16 @@ export default function SystemTest({ user }: SystemTestProps) {
           if (!user) {
             return { success: true, message: "Skipped - no user logged in" };
           }
+          if (!supabase) {
+            return {
+              success: false,
+              message: "Supabase client not available",
+              details: "Analytics unavailable",
+            };
+          }
           try {
             const { data, error } = await supabase
-              .from("analytics")
+              ?.from("analytics")
               .select("*")
               .eq("user_id", user.id)
               .limit(5);

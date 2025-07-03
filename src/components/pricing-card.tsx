@@ -335,7 +335,7 @@ export default function PricingCard({
         while (retryCount <= maxRetries) {
           try {
             if (!supabase) throw new Error("Supabase client not available during retry");
-            const result = await supabase.functions.invoke(
+            const result = await supabase?.functions?.invoke(
               "create-checkout",
               {
                 body: checkoutPayload,
@@ -462,7 +462,7 @@ export default function PricingCard({
           ],
       });
       console.error("Supabase client info:", {
-        hasAuth: !!supabase.auth,
+        hasAuth: !!supabase?.auth,
       });
 
       const errorMessage =

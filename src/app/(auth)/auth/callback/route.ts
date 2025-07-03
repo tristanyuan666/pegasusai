@@ -22,6 +22,19 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     const supabase = await createClient();
+    
+    if (!supabase) {
+      console.error("Supabase client not available");
+      return NextResponse.redirect(
+        new URL(
+          `/sign-in?error=${encodeURIComponent(
+            "Authentication service is not available. Please try again later.",
+          )}`,
+          currentDomain,
+        ),
+      );
+    }
+    
     try {
       const { data, error: exchangeError } =
         await supabase.auth.exchangeCodeForSession(code);

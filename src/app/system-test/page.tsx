@@ -29,6 +29,12 @@ export default function SystemTestPage() {
     setIsRunningTests(true);
     setTestResults({});
 
+    if (!supabase) {
+      updateTestResult("Edge Function Basic", "error", "Supabase client not available");
+      setIsRunningTests(false);
+      return;
+    }
+
     try {
       // Test 1: Basic Edge Function connectivity
       updateTestResult("Edge Function Basic", "pending", "Testing basic connectivity...");

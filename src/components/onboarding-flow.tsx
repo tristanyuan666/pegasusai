@@ -111,6 +111,8 @@ export default function OnboardingFlow({ user }: OnboardingFlowProps) {
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
+    if (!supabase) return;
+    
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -145,6 +147,8 @@ export default function OnboardingFlow({ user }: OnboardingFlowProps) {
   };
 
   const handleComplete = async () => {
+    if (!supabase) return;
+    
     setIsLoading(true);
     try {
       // Update user profile

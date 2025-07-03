@@ -179,6 +179,8 @@ export default function UserGoalsTracking({
   }, []);
 
   const loadGoals = async () => {
+    if (!supabase) return;
+    
     try {
       const { data, error } = await supabase
         .from("user_goals")
@@ -299,6 +301,8 @@ export default function UserGoalsTracking({
   };
 
   const createGoal = async () => {
+    if (!supabase) return;
+    
     try {
       const goalData = selectedTemplate
         ? {
@@ -342,6 +346,8 @@ export default function UserGoalsTracking({
   };
 
   const updateGoalProgress = async (goalId: string, newValue: number) => {
+    if (!supabase) return;
+    
     try {
       const { error } = await supabase
         .from("user_goals")
@@ -359,6 +365,8 @@ export default function UserGoalsTracking({
   };
 
   const deleteGoal = async (goalId: string) => {
+    if (!supabase) return;
+    
     try {
       const { error } = await supabase
         .from("user_goals")

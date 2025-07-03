@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Edge Function Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .pending { background-color: #fff3cd; border-color: #ffeaa7; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .loading { display: none; }
+        .loading.show { display: inline; }
+        .url-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Payment Edge Function Test</h1>
+        <p>This page tests the Supabase Edge Function for payment processing.</p>
+        
+        <div class="test-section">
+            <h3>🔧 Configuration</h3>
+            <label for="supabaseUrl">Supabase URL:</label>
+            <input type="text" id="supabaseUrl" class="url-input" 
+                   value="https://mtrffitlhpmejpafzjsd.supabase.co" 
+                   placeholder="Enter your Supabase URL">
+            <p><small>Try different URLs: epic-raman6-4uxp6.supabase.co, mtrffitlhpmejpafzjsd.supabase.co, or your actual project URL</small></p>
+        </div>
+        
+        <div class="test-section">
+            <h3>Test 1: Edge Function Connectivity</h3>
+            <button onclick="testEdgeFunction()" id="testBtn">Test Edge Function</button>
+            <span class="loading" id="loading">⏳ Testing...</span>
+            <div id="result1"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 2: Real Checkout (Test Mode)</h3>
+            <button onclick="testRealCheckout()" id="checkoutBtn">Test Real Checkout</button>
+            <span class="loading" id="loading2">⏳ Creating checkout...</span>
+            <div id="result2"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 3: Environment Check</h3>
+            <button onclick="checkEnvironment()">Check Environment</button>
+            <div id="result3"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 4: Try Different URLs</h3>
+            <button onclick="testMultipleUrls()">Test All URLs</button>
+            <div id="result4"></div>
+        </div>
+    </div>
+
+    <script>
+        // Test Edge Function connectivity
+        async function testEdgeFunction() {
+            const btn = document.getElementById('testBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result1');
+            const supabaseUrl = document.getElementById('supabaseUrl').value;
+            
+            btn.disabled = true;
+            loading.classList.add('show');
+            result.innerHTML = '';
+            
+            try {
+                const testData = {
+                    price_id: "price_1RgakoG8nQMivkW3R0JFwmJy",
+                    user_id: "test-user-123",
+                    customer_email: "test@example.com",
+                    plan_name: "Creator",
+                    billing_cycle: "monthly",
+                    test_mode: true
+                };
+
+                const response = await fetch(`${supabaseUrl}/functions/v1/create-checkout`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwaWMtcmFtYW42LTZ1eHA2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5NzE5NzQsImV4cCI6MjA1MDU0Nzk3NH0.Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8'
+                    },
+                    body: JSON.stringify(testData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    result.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Edge Function Test PASSED!</h4>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Edge Function Test FAILED</h4>
+                            <p>Status: ${response.status}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="error">
+                        <h4>💥 Test Error</h4>
+                        <p>${error.message}</p>
+                        <p><strong>Possible issues:</strong></p>
+                        <ul>
+                            <li>Edge Functions not deployed</li>
+                            <li>Incorrect Supabase URL</li>
+                            <li>Network connectivity issues</li>
+                            <li>CORS issues</li>
+                        </ul>
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                loading.classList.remove('show');
+            }
+        }
+
+        // Test real checkout
+        async function testRealCheckout() {
+            const btn = document.getElementById('checkoutBtn');
+            const loading = document.getElementById('loading2');
+            const result = document.getElementById('result2');
+            const supabaseUrl = document.getElementById('supabaseUrl').value;
+            
+            btn.disabled = true;
+            loading.classList.add('show');
+            result.innerHTML = '';
+            
+            try {
+                const testData = {
+                    price_id: "price_1RgakoG8nQMivkW3R0JFwmJy",
+                    user_id: "test-user-123",
+                    customer_email: "test@example.com",
+                    plan_name: "Creator",
+                    billing_cycle: "monthly",
+                    return_url: window.location.origin + "/success",
+                    cancel_url: window.location.origin + "/test-payment?cancelled=true"
+                };
+
+                const response = await fetch(`${supabaseUrl}/functions/v1/create-checkout`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwaWMtcmFtYW42LTZ1eHA2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5NzE5NzQsImV4cCI6MjA1MDU0Nzk3NH0.Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8'
+                    },
+                    body: JSON.stringify(testData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.url) {
+                    result.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Checkout Created Successfully!</h4>
+                            <p>Checkout URL: <a href="${data.url}" target="_blank">${data.url}</a></p>
+                            <button onclick="window.open('${data.url}', '_blank')">Open Checkout</button>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Checkout Creation Failed</h4>
+                            <p>Status: ${response.status}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="error">
+                        <h4>💥 Checkout Error</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                loading.classList.remove('show');
+            }
+        }
+
+        // Check environment
+        function checkEnvironment() {
+            const result = document.getElementById('result3');
+            
+            const checks = {
+                'Current URL': window.location.href,
+                'User Agent': navigator.userAgent,
+                'Online Status': navigator.onLine,
+                'Protocol': window.location.protocol,
+                'Host': window.location.host,
+                'Origin': window.location.origin
+            };
+            
+            result.innerHTML = `
+                <div class="pending">
+                    <h4>🔍 Environment Information</h4>
+                    <pre>${JSON.stringify(checks, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        // Test multiple URLs
+        async function testMultipleUrls() {
+            const result = document.getElementById('result4');
+            const urls = [
+                'https://epic-raman6-4uxp6.supabase.co',
+                'https://mtrffitlhpmejpafzjsd.supabase.co'
+            ];
+            
+            result.innerHTML = '<div class="pending"><h4>🔍 Testing Multiple URLs...</h4></div>';
+            
+            for (const url of urls) {
+                try {
+                    const response = await fetch(`${url}/functions/v1/diagnostic`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwaWMtcmFtYW42LTZ1eHA2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5NzE5NzQsImV4cCI6MjA1MDU0Nzk3NH0.Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8'
+                        },
+                        body: JSON.stringify({test: true})
+                    });
+                    
+                    if (response.ok) {
+                        result.innerHTML += `<div class="success"><strong>✅ ${url}</strong> - Working!</div>`;
+                        document.getElementById('supabaseUrl').value = url;
+                        break;
+                    } else {
+                        result.innerHTML += `<div class="error"><strong>❌ ${url}</strong> - Status: ${response.status}</div>`;
+                    }
+                } catch (error) {
+                    result.innerHTML += `<div class="error"><strong>❌ ${url}</strong> - Error: ${error.message}</div>`;
+                }
+            }
+        }
+    </script>
+</body>
+</html> 

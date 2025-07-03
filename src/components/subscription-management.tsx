@@ -196,6 +196,8 @@ export default function SubscriptionManagement({
   };
 
   const handleManageBilling = async () => {
+    if (!supabase) return;
+    
     setIsManagingBilling(true);
     try {
       // Create Stripe customer portal session
@@ -224,6 +226,8 @@ export default function SubscriptionManagement({
   };
 
   const handleCancelSubscription = async () => {
+    if (!supabase) return;
+    
     if (
       !confirm(
         "Are you sure you want to cancel your subscription? You'll lose access to all premium features at the end of your current billing period.",

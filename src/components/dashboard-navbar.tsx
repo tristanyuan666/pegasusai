@@ -23,6 +23,8 @@ export default function DashboardNavbar() {
   }, []);
 
   const handleSignOut = async () => {
+    if (!supabase) return;
+    
     try {
       await supabase.auth.signOut();
       if (typeof window !== "undefined") {

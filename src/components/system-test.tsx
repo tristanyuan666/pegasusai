@@ -88,6 +88,14 @@ export default function SystemTest({ user }: SystemTestProps) {
       {
         name: "Authentication System",
         test: async () => {
+          if (!supabase) {
+            return {
+              success: false,
+              message: "Supabase client not available",
+              details: "Authentication system unavailable",
+            };
+          }
+          
           try {
             const {
               data: { session },
@@ -156,6 +164,14 @@ export default function SystemTest({ user }: SystemTestProps) {
       {
         name: "User Profile System",
         test: async () => {
+          if (!supabase) {
+            return {
+              success: false,
+              message: "Supabase client not available",
+              details: "User profile system unavailable",
+            };
+          }
+          
           if (!user) {
             return { success: true, message: "Skipped - no user logged in" };
           }
@@ -188,6 +204,14 @@ export default function SystemTest({ user }: SystemTestProps) {
       {
         name: "Subscription System",
         test: async () => {
+          if (!supabase) {
+            return {
+              success: false,
+              message: "Supabase client not available",
+              details: "Subscription system unavailable",
+            };
+          }
+          
           if (!user) {
             return { success: true, message: "Skipped - no user logged in" };
           }

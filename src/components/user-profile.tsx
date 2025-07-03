@@ -18,7 +18,9 @@ export default function UserProfile() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={async () => {
-                    await supabase.auth.signOut()
+                    if (supabase) {
+                        await supabase.auth.signOut()
+                    }
                     router.push("/")
                 }}>
                     Sign out

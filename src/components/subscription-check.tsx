@@ -16,6 +16,10 @@ export async function SubscriptionCheck({
   allowFree = false,
 }: SubscriptionCheckProps) {
   const supabase = await createClient();
+  if (!supabase) {
+    redirect("/sign-in");
+  }
+  
   const {
     data: { user },
   } = await supabase.auth.getUser();

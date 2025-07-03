@@ -53,6 +53,8 @@ export default function Navbar({ user = null }: NavbarProps) {
   useEffect(() => {
     if (!user) {
       const getUser = async () => {
+        if (!supabase) return;
+        
         const {
           data: { user },
         } = await supabase.auth.getUser();

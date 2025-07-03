@@ -20,6 +20,11 @@ export default function SocialLogin({
 
     try {
       const supabase = createClient();
+      if (!supabase) {
+        setError("Authentication service not available");
+        return;
+      }
+      
       // Get current domain dynamically
       const currentDomain =
         typeof window !== "undefined"

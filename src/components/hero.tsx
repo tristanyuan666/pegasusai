@@ -668,6 +668,8 @@ export default function Hero() {
     if (!isMounted || !supabase) return;
 
     const checkUserStatus = async () => {
+      if (!supabase) return;
+      
       try {
         const {
           data: { user },

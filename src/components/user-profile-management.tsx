@@ -91,6 +91,8 @@ export default function UserProfileManagement({
   }, []);
 
   const loadSessions = async () => {
+    if (!supabase) return;
+    
     try {
       setLoadingSessions(true);
       // Get current session info
@@ -185,6 +187,8 @@ export default function UserProfileManagement({
   };
 
   const handleSignOutAllDevices = async () => {
+    if (!supabase) return;
+    
     try {
       await supabase.auth.signOut({ scope: "global" });
       window.location.href = "/sign-in?message=Signed out from all devices";

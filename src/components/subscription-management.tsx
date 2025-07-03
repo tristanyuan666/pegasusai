@@ -133,6 +133,7 @@ export default function SubscriptionManagement({
   }, [subscription]);
 
   const loadUsageStats = async () => {
+    if (!supabase) return;
     try {
       // Load current month usage
       const startOfMonth = new Date();
@@ -140,13 +141,13 @@ export default function SubscriptionManagement({
       startOfMonth.setHours(0, 0, 0, 0);
 
       const { count: postsCount } = await supabase
-        .from("content_queue")
+        ?.from("content_queue")
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId)
         .gte("created_at", startOfMonth.toISOString());
 
       const { count: platformsCount } = await supabase
-        .from("social_connections")
+        ?.from("social_connections")
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId)
         .eq("is_active", true);

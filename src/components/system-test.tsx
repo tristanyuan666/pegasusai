@@ -386,6 +386,13 @@ export default function SystemTest({ user }: SystemTestProps) {
               };
             } else {
               // Try alternative test with Supabase functions
+              if (!supabase) {
+                return {
+                  success: false,
+                  message: "Supabase client not available",
+                  details: "Edge functions unavailable",
+                };
+              }
               try {
                 const { data, error } = await supabase.functions.invoke(
                   "supabase-functions-create-checkout",

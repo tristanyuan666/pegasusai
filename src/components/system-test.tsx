@@ -655,7 +655,7 @@ export default function SystemTest({ user }: SystemTestProps) {
 
             // Test if elements are properly styled for interaction
             let properlyStyled = 0;
-            [...buttons, ...links].forEach((element) => {
+            Array.from(buttons).concat(Array.from(links)).forEach((element) => {
               const styles = window.getComputedStyle(element);
               if (styles.cursor === "pointer" || styles.cursor === "none") {
                 properlyStyled++;

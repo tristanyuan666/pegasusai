@@ -1,11 +1,27 @@
 #!/bin/bash
 
-# Deploy the payments webhook without JWT verification
-echo "Deploying payments-webhook function with JWT verification disabled..."
+# Deploy all Edge Functions without JWT verification
+echo "Deploying Edge Functions with JWT verification disabled..."
+
+echo "Deploying create-checkout function..."
+supabase functions deploy create-checkout --no-verify-jwt
+
+echo "Deploying payments-webhook function..."
 supabase functions deploy payments-webhook --no-verify-jwt
 
-# You can add other webhook deployments here
-# echo "Deploying other-webhook function with JWT verification disabled..."
-# supabase functions deploy other-webhook --no-verify-jwt
+echo "Deploying diagnostic function..."
+supabase functions deploy diagnostic --no-verify-jwt
 
-echo "All webhook functions deployed successfully!"
+echo "Deploying test-connection function..."
+supabase functions deploy test-connection --no-verify-jwt
+
+echo "Deploying test-checkout function..."
+supabase functions deploy test-checkout --no-verify-jwt
+
+echo "Deploying test-stripe-connection function..."
+supabase functions deploy test-stripe-connection --no-verify-jwt
+
+echo "Deploying test-new-stripe function..."
+supabase functions deploy test-new-stripe --no-verify-jwt
+
+echo "All Edge Functions deployed successfully!"

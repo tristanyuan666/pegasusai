@@ -1,61 +1,41 @@
-import { corsHeaders } from "@shared/cors.ts";
+import { corsHeaders } from "../_shared/cors.ts";
 
 Deno.serve(async (req) => {
+  console.log("=== DIAGNOSTIC FUNCTION CALLED ===");
+  console.log("Method:", req.method);
+  console.log("Headers:", Object.fromEntries(req.headers.entries()));
+
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
+    console.log("Handling CORS preflight");
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    console.log("=== DIAGNOSTIC FUNCTION CALLED ===");
-    console.log("Method:", req.method);
-    console.log("URL:", req.url);
-    console.log("Headers:", Object.fromEntries(req.headers.entries()));
-
-    // Check all environment variables
-    const envCheck = {
-      STRIPE_SECRET_KEY: {
-        exists: !!Deno.env.get("STRIPE_SECRET_KEY"),
-        length: Deno.env.get("STRIPE_SECRET_KEY")?.length || 0,
-        prefix: Deno.env.get("STRIPE_SECRET_KEY")?.substring(0, 7) || "none",
-      },
-      STRIPE_WEBHOOK_SECRET: {
-        exists: !!Deno.env.get("STRIPE_WEBHOOK_SECRET"),
-        length: Deno.env.get("STRIPE_WEBHOOK_SECRET")?.length || 0,
-        prefix:
-          Deno.env.get("STRIPE_WEBHOOK_SECRET")?.substring(0, 7) || "none",
-      },
-      SUPABASE_URL: {
-        exists: !!Deno.env.get("SUPABASE_URL"),
-        value: Deno.env.get("SUPABASE_URL") || "none",
-      },
-      SUPABASE_SERVICE_KEY: {
-        exists: !!Deno.env.get("SUPABASE_SERVICE_KEY"),
-        length: Deno.env.get("SUPABASE_SERVICE_KEY")?.length || 0,
-        prefix: Deno.env.get("SUPABASE_SERVICE_KEY")?.substring(0, 7) || "none",
-      },
-    };
-
     const response = {
       success: true,
       message: "Diagnostic function is working!",
       timestamp: new Date().toISOString(),
-      method: req.method,
-      url: req.url,
-      environment: envCheck,
-      deno_info: {
-        version: Deno.version.deno,
-        v8: Deno.version.v8,
-        typescript: Deno.version.typescript,
+      environment: {
+        STRIPE_SECRET_KEY: !!Deno.env.get("STRIPE_SECRET_KEY"),
+        SUPABASE_URL: !!Deno.env.get("SUPABASE_URL"),
+        SUPABASE_SERVICE_KEY: !!Deno.env.get("SUPABASE_SERVICE_KEY"),
+        STRIPE_WEBHOOK_SECRET: !!Deno.env.get("STRIPE_WEBHOOK_SECRET"),
       },
       function_info: {
         name: "diagnostic",
-        deployed: true,
-        runtime: "Deno Edge Runtime",
+        version: "1.0.0",
+        runtime: "Deno",
+        deno_version: Deno.version.deno,
+      },
+      request_info: {
+        method: req.method,
+        url: req.url,
+        headers: Object.fromEntries(req.headers.entries()),
       },
     };
 
-    console.log("Diagnostic response:", JSON.stringify(response, null, 2));
+    console.log("Sending diagnostic response:", response);
 
     return new Response(JSON.stringify(response), {
       status: 200,
@@ -64,14 +44,6 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error("=== DIAGNOSTIC ERROR ===");
     console.error("Error:", error);
-    console.error(
-      "Error message:",
-      error instanceof Error ? error.message : "Unknown",
-    );
-    console.error(
-      "Error stack:",
-      error instanceof Error ? error.stack : "No stack",
-    );
 
     const errorResponse = {
       success: false,

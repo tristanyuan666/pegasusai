@@ -1,3 +1,27 @@
 [functions]
 [functions.payments-webhook]
 verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.diagnostic]
+verify_jwt = false
+
+[functions.test-connection]
+verify_jwt = false
+
+[functions.test-checkout]
+verify_jwt = false
+
+[functions.test-stripe-connection]
+verify_jwt = false
+
+[functions.test-new-stripe]
+verify_jwt = false
+
+[functions.create-portal-session]
+verify_jwt = false
+
+[functions.cancel-subscription]
+verify_jwt = false

@@ -1,51 +1,57 @@
-import { corsHeaders } from "@shared/cors.ts";
+import { corsHeaders } from "../_shared/cors.ts";
 
 Deno.serve(async (req) => {
+  console.log("=== TEST CONNECTION FUNCTION CALLED ===");
+  console.log("Method:", req.method);
+  console.log("Headers:", Object.fromEntries(req.headers.entries()));
+
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
+    console.log("Handling CORS preflight");
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    console.log("Test connection function called");
-    console.log("Request method:", req.method);
-    console.log("Request headers:", Object.fromEntries(req.headers.entries()));
-
-    // Check environment variables
-    const envCheck = {
-      STRIPE_SECRET_KEY: !!Deno.env.get("STRIPE_SECRET_KEY"),
-      SUPABASE_URL: !!Deno.env.get("SUPABASE_URL"),
-      SUPABASE_SERVICE_KEY: !!Deno.env.get("SUPABASE_SERVICE_KEY"),
-    };
-
     const response = {
       success: true,
-      message: "Edge Function is working!",
+      message: "Edge Function connection test successful!",
       timestamp: new Date().toISOString(),
-      method: req.method,
-      environment: envCheck,
-      deno_version: Deno.version.deno,
+      function_info: {
+        name: "test-connection",
+        version: "1.0.0",
+        runtime: "Deno",
+        deno_version: Deno.version.deno,
+      },
+      request_info: {
+        method: req.method,
+        url: req.url,
+        user_agent: req.headers.get("user-agent"),
+      },
     };
 
-    console.log("Sending response:", response);
+    console.log("Sending test connection response:", response);
 
     return new Response(JSON.stringify(response), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Test function error:", error);
+    console.error("=== TEST CONNECTION ERROR ===");
+    console.error("Error:", error);
 
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-        timestamp: new Date().toISOString(),
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const errorResponse = {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+      timestamp: new Date().toISOString(),
+      function_info: {
+        name: "test-connection",
+        error_type: typeof error,
       },
-    );
+    };
+
+    return new Response(JSON.stringify(errorResponse), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

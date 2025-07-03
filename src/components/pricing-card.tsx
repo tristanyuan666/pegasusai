@@ -154,6 +154,9 @@ export default function PricingCard({
   const testEdgeFunction = async () => {
     try {
       console.log("Testing Edge Function connectivity...");
+      console.log("Supabase URL:", supabase.supabaseUrl);
+      console.log("Supabase client:", supabase);
+      
       const { data, error } = await supabase.functions.invoke(
         "create-checkout",
         {
@@ -169,6 +172,13 @@ export default function PricingCard({
       console.log("Test result:", { data, error });
 
       if (error) {
+        console.error("Test error details:", {
+          message: error.message,
+          details: error.details,
+          context: error.context,
+          hint: error.hint,
+          status: error.status,
+        });
         setTestResult(`Test FAILED: ${error.message}`);
       } else if (data?.success) {
         setTestResult(`Test PASSED: ${data.message}`);
@@ -305,16 +315,51 @@ export default function PricingCard({
           },
         };
 
-        // Call Supabase Edge Function
+        // Call Supabase Edge Function with retry mechanism
         console.log("Invoking Edge Function:", "create-checkout");
         console.log("Payload:", checkoutPayload);
+        console.log("Supabase URL:", supabase.supabaseUrl);
+        console.log("Supabase client config:", {
+          hasAuth: !!supabase.auth,
+          hasFunctions: !!supabase.functions,
+        });
 
-        const { data, error } = await supabase.functions.invoke(
-          "create-checkout",
-          {
-            body: checkoutPayload,
-          },
-        );
+        let data, error;
+        let retryCount = 0;
+        const maxRetries = 2;
+
+        while (retryCount <= maxRetries) {
+          try {
+            const result = await supabase.functions.invoke(
+              "create-checkout",
+              {
+                body: checkoutPayload,
+              },
+            );
+            
+            data = result.data;
+            error = result.error;
+            
+            if (!error) break; // Success, exit retry loop
+            
+            console.log(`Attempt ${retryCount + 1} failed:`, error.message);
+            retryCount++;
+            
+            if (retryCount <= maxRetries) {
+              console.log(`Retrying in ${retryCount * 1000}ms...`);
+              await new Promise(resolve => setTimeout(resolve, retryCount * 1000));
+            }
+          } catch (retryError) {
+            console.error(`Retry attempt ${retryCount + 1} failed:`, retryError);
+            retryCount++;
+            
+            if (retryCount <= maxRetries) {
+              await new Promise(resolve => setTimeout(resolve, retryCount * 1000));
+            } else {
+              throw retryError;
+            }
+          }
+        }
 
         console.log("Checkout response:", { data, error });
         console.log("Raw error object:", error);
@@ -326,8 +371,20 @@ export default function PricingCard({
             details: error.details,
             context: error.context,
             hint: error.hint,
+            status: error.status,
           });
-          throw new Error(`Failed to start checkout process: ${error.message}`);
+          
+          // Provide more specific error messages
+          let errorMessage = error.message;
+          if (error.message.includes("Failed to fetch")) {
+            errorMessage = "Network error - please check your internet connection";
+          } else if (error.message.includes("404")) {
+            errorMessage = "Edge Function not found - please contact support";
+          } else if (error.message.includes("500")) {
+            errorMessage = "Server error - please try again later";
+          }
+          
+          throw new Error(`Failed to start checkout process: ${errorMessage}`);
         }
 
         if (!data) {
@@ -410,9 +467,22 @@ export default function PricingCard({
 
       // Show user-friendly error message with more details for debugging
       if (typeof window !== "undefined") {
+        let userMessage = errorMessage;
+        
+        // Provide more helpful error messages
+        if (errorMessage.includes("Failed to fetch")) {
+          userMessage = "Network error - please check your internet connection and try again.";
+        } else if (errorMessage.includes("404")) {
+          userMessage = "Service temporarily unavailable - please try again in a few minutes.";
+        } else if (errorMessage.includes("500")) {
+          userMessage = "Server error - please try again later or contact support.";
+        } else if (errorMessage.includes("Edge Function")) {
+          userMessage = "Payment service is being updated - please try again in a few minutes.";
+        }
+        
         const debugInfo = `\n\nDebug Info:\n- Plan: ${safePlan.name}\n- Billing: ${isYearly ? "yearly" : "monthly"}\n- User ID: ${user?.id}\n- Error: ${errorMessage}`;
         alert(
-          `Payment Error: ${errorMessage}\n\nPlease try again or contact support if the issue persists.${debugInfo}`,
+          `Payment Error: ${userMessage}\n\nPlease try again or contact support if the issue persists.${debugInfo}`,
         );
       }
     } finally {

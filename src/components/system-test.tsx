@@ -2003,7 +2003,7 @@ export default function SystemTest({ user }: SystemTestProps) {
               document.querySelectorAll('script[src*=".js.map"]').length > 0;
             const hasTypeScriptErrors =
               typeof (window as any).__TS_ERRORS__ !== "undefined";
-            const hasReactTypes = typeof React !== "undefined";
+            const hasReactTypes = typeof (window as any).React !== "undefined";
 
             // Check for TypeScript-specific patterns in script tags
             const scripts = Array.from(document.querySelectorAll("script"));

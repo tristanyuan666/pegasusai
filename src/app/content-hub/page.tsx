@@ -13,10 +13,25 @@ export default async function ContentHubPage() {
     return redirect("/sign-in");
   }
 
+  // Get user subscription status
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("status", "active")
+    .single();
+
+  const hasActiveSubscription = !!subscription;
+  const subscriptionTier = subscription?.plan_name || "free";
+
   return (
     <>
       <DashboardNavbar />
-      <ContentCreationHub />
+      <ContentCreationHub 
+        user={user}
+        hasActiveSubscription={hasActiveSubscription}
+        subscriptionTier={subscriptionTier}
+      />
     </>
   );
 }

@@ -66,9 +66,16 @@ export default function SystemTest({ user }: SystemTestProps) {
       {
         name: "Database Connection",
         test: async () => {
+          if (!supabase) {
+            return {
+              success: false,
+              message: "Supabase client not available",
+              details: "Database connection unavailable",
+            };
+          }
           try {
             const { data, error } = await supabase
-              .from("users")
+              ?.from("users")
               .select("count")
               .limit(1);
             if (error) throw error;

@@ -1,3 +1,6 @@
+"use client";
+
+import React, { useState } from "react";
 import { FormMessage, Message } from "@/components/form-message";
 import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
@@ -7,18 +10,43 @@ import { SmtpMessage } from "../smtp-message";
 import { forgotPasswordAction } from "@/app/actions";
 import Navbar from "@/components/navbar";
 
-export default async function ForgotPassword(props: {
+interface ForgotPasswordProps {
   searchParams: Promise<Message>;
-}) {
-  const searchParams = await props.searchParams;
+}
 
-  if ("message" in searchParams) {
-    return (
-      <div className="flex h-screen w-full flex-1 items-center justify-center p-4 sm:max-w-md">
-        <FormMessage message={searchParams} />
-      </div>
-    );
-  }
+export default function ForgotPassword({ searchParams }: ForgotPasswordProps) {
+  const [message, setMessage] = useState<Message | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Handle URL parameters for success and error messages
+  React.useEffect(() => {
+    const getParams = async () => {
+      const params = await searchParams;
+      if ("error" in params || "success" in params || "message" in params) {
+        setMessage(params);
+      }
+    };
+    getParams();
+  }, [searchParams]);
+
+  const handleSubmit = async (formData: FormData) => {
+    setIsLoading(true);
+    setMessage(null);
+
+    try {
+      const result = await forgotPasswordAction(formData);
+      if (result?.error) {
+        setMessage({ error: result.error });
+      } else if (result?.success) {
+        setMessage({ success: result.success });
+      }
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      setMessage({ error: "An unexpected error occurred. Please try again." });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
@@ -40,7 +68,7 @@ export default async function ForgotPassword(props: {
             </p>
           </div>
 
-          <form className="flex flex-col space-y-6">
+          <form action={handleSubmit} className="flex flex-col space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
@@ -53,19 +81,20 @@ export default async function ForgotPassword(props: {
                   placeholder="you@example.com"
                   required
                   className="w-full"
+                  disabled={isLoading}
                 />
               </div>
             </div>
 
             <SubmitButton
-              formAction={forgotPasswordAction}
               pendingText="Sending reset link..."
               className="w-full hover-target interactive-element"
+              disabled={isLoading}
             >
               Reset Password
             </SubmitButton>
 
-            <FormMessage message={searchParams} />
+            {message && <FormMessage message={message} />}
           </form>
         </div>
         <SmtpMessage />

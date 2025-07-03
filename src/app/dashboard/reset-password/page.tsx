@@ -1,3 +1,6 @@
+"use client";
+
+import React, { useState } from "react";
 import { resetPasswordAction } from "@/app/actions";
 import { FormMessage, Message } from "@/components/form-message";
 import Navbar from "@/components/navbar";
@@ -5,24 +8,50 @@ import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default async function ResetPassword(props: {
+interface ResetPasswordProps {
   searchParams: Promise<Message>;
-}) {
-  const searchParams = await props.searchParams;
-  if ("message" in searchParams) {
-    return (
-      <div className="flex h-screen w-full flex-1 items-center justify-center p-4 sm:max-w-md">
-        <FormMessage message={searchParams} />
-      </div>
-    );
-  }
+}
+
+export default function ResetPassword({ searchParams }: ResetPasswordProps) {
+  const [message, setMessage] = useState<Message | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Handle URL parameters for success and error messages
+  React.useEffect(() => {
+    const getParams = async () => {
+      const params = await searchParams;
+      if ("error" in params || "success" in params || "message" in params) {
+        setMessage(params);
+      }
+    };
+    getParams();
+  }, [searchParams]);
+
+  const handleSubmit = async (formData: FormData) => {
+    setIsLoading(true);
+    setMessage(null);
+
+    try {
+      const result = await resetPasswordAction(formData);
+      if (result?.error) {
+        setMessage({ error: result.error });
+      } else if (result?.success) {
+        setMessage({ success: result.success });
+      }
+    } catch (error) {
+      console.error("Reset password error:", error);
+      setMessage({ error: "An unexpected error occurred. Please try again." });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
       <Navbar />
       <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8">
         <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-sm">
-          <form className="flex flex-col space-y-6">
+          <form action={handleSubmit} className="flex flex-col space-y-6">
             <div className="space-y-2 text-center">
               <h1 className="text-3xl font-semibold tracking-tight">Reset password</h1>
               <p className="text-sm text-muted-foreground">
@@ -42,6 +71,7 @@ export default async function ResetPassword(props: {
                   placeholder="New password"
                   required
                   className="w-full"
+                  disabled={isLoading}
                 />
               </div>
 
@@ -56,19 +86,20 @@ export default async function ResetPassword(props: {
                   placeholder="Confirm password"
                   required
                   className="w-full"
+                  disabled={isLoading}
                 />
               </div>
             </div>
 
             <SubmitButton
-              formAction={resetPasswordAction}
               pendingText="Resetting password..."
               className="w-full"
+              disabled={isLoading}
             >
               Reset password
             </SubmitButton>
 
-            <FormMessage message={searchParams} />
+            {message && <FormMessage message={message} />}
           </form>
         </div>
       </div>

@@ -90,6 +90,11 @@ export default function DashboardHome({
 
   const loadDashboardData = async () => {
     try {
+      if (!supabase) {
+        console.error("Supabase client not available");
+        return;
+      }
+
       // Load content queue
       const { data: queueData } = await supabase
         .from("content_queue")

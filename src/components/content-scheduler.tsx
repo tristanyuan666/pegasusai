@@ -141,6 +141,11 @@ export default function ContentScheduler({
 
   const loadContentQueue = async () => {
     try {
+      if (!supabase) {
+        console.error("Supabase client not available");
+        return;
+      }
+
       const { data, error } = await supabase
         .from("content_queue")
         .select("*")
@@ -304,7 +309,7 @@ export default function ContentScheduler({
     setViralScore(score);
 
     // Store viral score prediction with enhanced factors
-    if (hasActiveSubscription) {
+    if (hasActiveSubscription && supabase) {
       await supabase.from("viral_scores").insert({
         user_id: userId,
         score,

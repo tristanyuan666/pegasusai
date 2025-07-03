@@ -131,6 +131,7 @@ export async function getUserProfile(
   userId: string,
 ): Promise<UserProfile | null> {
   const supabase = await createClient();
+  if (!supabase) return null;
 
   const { data, error } = await supabase
     .from("users")
@@ -150,6 +151,7 @@ export async function getUserSubscription(
   userId: string,
 ): Promise<SubscriptionData | null> {
   const supabase = await createClient();
+  if (!supabase) return null;
 
   const { data, error } = await supabase
     .from("subscriptions")
@@ -170,6 +172,7 @@ export async function getSocialConnections(
   userId: string,
 ): Promise<SocialConnection[]> {
   const supabase = await createClient();
+  if (!supabase) return [];
 
   try {
     const { data, error } = await supabase
@@ -196,6 +199,7 @@ export async function getContentQueue(
   limit: number = 10,
 ): Promise<ContentItem[]> {
   const supabase = await createClient();
+  if (!supabase) return [];
 
   const { data, error } = await supabase
     .from("content_queue")
@@ -217,6 +221,7 @@ export async function getAnalyticsData(
   days: number = 30,
 ): Promise<AnalyticsData[]> {
   const supabase = await createClient();
+  if (!supabase) return [];
 
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
@@ -241,6 +246,7 @@ export async function getViralScores(
   limit: number = 10,
 ): Promise<ViralScore[]> {
   const supabase = await createClient();
+  if (!supabase) return [];
 
   const { data, error } = await supabase
     .from("viral_scores")
@@ -259,6 +265,7 @@ export async function getViralScores(
 
 export async function getUserGoals(userId: string): Promise<UserGoal[]> {
   const supabase = await createClient();
+  if (!supabase) return [];
 
   const { data, error } = await supabase
     .from("user_goals")
@@ -279,6 +286,7 @@ export async function getMonetizationData(
   days: number = 30,
 ): Promise<MonetizationData[]> {
   const supabase = await createClient();
+  if (!supabase) return [];
 
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);

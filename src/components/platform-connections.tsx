@@ -87,6 +87,7 @@ export default function PlatformConnections({
         is_active: true,
       };
 
+      if (!supabase) return;
       const { error } = await supabase
         .from("social_connections")
         .insert(mockConnection);
@@ -111,6 +112,7 @@ export default function PlatformConnections({
     }
 
     try {
+      if (!supabase) return;
       const { error } = await supabase
         .from("social_connections")
         .update({ is_active: false })
@@ -137,6 +139,7 @@ export default function PlatformConnections({
 
       const newFollowerCount = Math.floor(Math.random() * 15000) + 5000;
 
+      if (!supabase) return;
       const { error } = await supabase
         .from("social_connections")
         .update({

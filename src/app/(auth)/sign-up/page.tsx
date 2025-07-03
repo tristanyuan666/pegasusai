@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../../../supabase/client";
@@ -34,8 +34,18 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [supabase, setSupabase] = useState<any>(null);
   const router = useRouter();
-  const supabase = createClient();
+
+  useEffect(() => {
+    const initSupabase = () => {
+      const client = createClient();
+      if (client) {
+        setSupabase(client);
+      }
+    };
+    initSupabase();
+  }, []);
 
   const validateForm = () => {
     if (!fullName.trim()) {
@@ -79,6 +89,11 @@ export default function SignUpPage() {
     e.preventDefault();
 
     if (!validateForm()) return;
+
+    if (!supabase) {
+      setError("Authentication service is not available. Please try again later.");
+      return;
+    }
 
     setIsLoading(true);
     setError(null);

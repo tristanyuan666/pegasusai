@@ -153,6 +153,10 @@ export const signInAction = async (formData: FormData) => {
   try {
     const supabase = await createClient();
 
+    if (!supabase) {
+      return { error: "Authentication service is not available. Please try again later." };
+    }
+
     console.log("Attempting to sign in user:", { email });
 
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -320,6 +324,10 @@ export const forgotPasswordAction = async (formData: FormData) => {
     return { error: "Email is required" };
   }
 
+  if (!supabase) {
+    return { error: "Authentication service is not available. Please try again later." };
+  }
+
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "https://epic-raman6-4uxp6.view-3.tempo-dev.app"}/auth/callback?type=recovery&redirect_to=/dashboard/reset-password`,
   });
@@ -361,6 +369,10 @@ export const resetPasswordAction = async (formData: FormData) => {
     return { error: "Password and confirm password are required" };
   }
 
+  if (!supabase) {
+    return { error: "Authentication service is not available. Please try again later." };
+  }
+
   if (password !== confirmPassword) {
     return { error: "Passwords do not match" };
   }
@@ -389,6 +401,10 @@ export const resetPasswordAction = async (formData: FormData) => {
 export const signOutAction = async () => {
   try {
     const supabase = await createClient();
+    if (!supabase) {
+      redirect("/sign-in");
+      return;
+    }
     await supabase.auth.signOut();
     redirect("/sign-in");
   } catch (error) {
@@ -412,6 +428,10 @@ export const signOutAction = async () => {
 export const checkUserSubscription = async (userId: string) => {
   const supabase = await createClient();
 
+  if (!supabase) {
+    return false;
+  }
+
   const { data: subscription, error } = await supabase
     .from("subscriptions")
     .select("*")
@@ -428,6 +448,10 @@ export const checkUserSubscription = async (userId: string) => {
 
 export const updateUserProfile = async (userId: string, profileData: any) => {
   const supabase = await createClient();
+
+  if (!supabase) {
+    return { error: "Database service is not available. Please try again later." };
+  }
 
   const { data, error } = await supabase
     .from("users")
@@ -452,6 +476,10 @@ export const completeOnboarding = async (
 ) => {
   const supabase = await createClient();
 
+  if (!supabase) {
+    return { error: "Database service is not available. Please try again later." };
+  }
+
   const { data, error } = await supabase
     .from("users")
     .update({
@@ -475,6 +503,10 @@ export const completeOnboarding = async (
 
 export const getUserDashboardData = async (userId: string) => {
   const supabase = await createClient();
+
+  if (!supabase) {
+    return { error: "Database service is not available. Please try again later." };
+  }
 
   // Get user profile
   const { data: userProfile, error: profileError } = await supabase
@@ -535,6 +567,10 @@ export const syncUserSubscriptionStatus = async (
   subscriptionData: any,
 ) => {
   const supabase = await createClient();
+
+  if (!supabase) {
+    return { error: "Database service is not available. Please try again later." };
+  }
 
   // Update or create subscription record
   const { data, error } = await supabase

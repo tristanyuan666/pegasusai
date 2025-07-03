@@ -648,14 +648,24 @@ export default function Hero() {
   const [hasSubscription, setHasSubscription] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
-  const supabase = createClient();
+  const [supabase, setSupabase] = useState<any>(null);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   useEffect(() => {
-    if (!isMounted) return;
+    const initSupabase = () => {
+      const client = createClient();
+      if (client) {
+        setSupabase(client);
+      }
+    };
+    initSupabase();
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted || !supabase) return;
 
     const checkUserStatus = async () => {
       try {

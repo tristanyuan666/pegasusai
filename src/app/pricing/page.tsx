@@ -342,17 +342,33 @@ export default function PricingPage({ searchParams }: PricingPageProps) {
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
   const [showVerifiedMessage, setShowVerifiedMessage] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const supabase = createClient();
+  const [supabase, setSupabase] = useState<any>(null);
 
   useEffect(() => {
+    const initSupabase = () => {
+      const client = createClient();
+      if (client) {
+        setSupabase(client);
+      }
+    };
+    initSupabase();
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) return;
+    
     const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setUser(user);
+      } catch (error) {
+        console.error("Error getting user:", error);
+      }
     };
     getUser();
-  }, []);
+  }, [supabase]);
 
   // Show welcome or verification messages
   useState(() => {

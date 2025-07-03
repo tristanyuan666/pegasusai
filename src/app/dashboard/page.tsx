@@ -34,6 +34,10 @@ export default async function Dashboard({
 }) {
   const supabase = await createClient();
 
+  if (!supabase) {
+    return redirect("/sign-in");
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser();

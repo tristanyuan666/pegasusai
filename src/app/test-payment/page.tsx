@@ -40,26 +40,42 @@ export default function PaymentTestPage() {
   const [isRunningTests, setIsRunningTests] = useState(false);
   const [paymentTestData, setPaymentTestData] =
     useState<PaymentTestData | null>(null);
-  const supabase = createClient();
+  const [supabase, setSupabase] = useState<any>(null);
 
   useEffect(() => {
+    const initSupabase = () => {
+      const client = createClient();
+      if (client) {
+        setSupabase(client);
+      }
+    };
+    initSupabase();
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) return;
+    
     const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-      if (user) {
-        setPaymentTestData({
-          user_id: user.id,
-          email: user.email || "test@example.com",
-          plan_name: "Creator",
-          price_id: "price_1RgakoG8nQMivkW3R0JFwmJy", // Creator Monthly
-          billing_cycle: "monthly",
-        });
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setUser(user);
+        if (user) {
+          setPaymentTestData({
+            user_id: user.id,
+            email: user.email || "test@example.com",
+            plan_name: "Creator",
+            price_id: "price_1RgakoG8nQMivkW3R0JFwmJy", // Creator Monthly
+            billing_cycle: "monthly",
+          });
+        }
+      } catch (error) {
+        console.error("Error getting user:", error);
       }
     };
     getUser();
-  }, []);
+  }, [supabase]);
 
   const updateTestResult = (
     name: string,

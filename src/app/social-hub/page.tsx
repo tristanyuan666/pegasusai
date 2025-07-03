@@ -5,6 +5,11 @@ import DashboardNavbar from "@/components/dashboard-navbar";
 
 export default async function SocialHubPage() {
   const supabase = await createClient();
+  
+  if (!supabase) {
+    return redirect("/sign-in");
+  }
+  
   const {
     data: { user },
   } = await supabase.auth.getUser();

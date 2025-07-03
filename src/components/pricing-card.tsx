@@ -154,7 +154,6 @@ export default function PricingCard({
   const testEdgeFunction = async () => {
     try {
       console.log("Testing Edge Function connectivity...");
-      console.log("Supabase URL:", supabase.supabaseUrl);
       console.log("Supabase client:", supabase);
       
       const { data, error } = await supabase.functions.invoke(
@@ -318,7 +317,6 @@ export default function PricingCard({
         // Call Supabase Edge Function with retry mechanism
         console.log("Invoking Edge Function:", "create-checkout");
         console.log("Payload:", checkoutPayload);
-        console.log("Supabase URL:", supabase.supabaseUrl);
         console.log("Supabase client config:", {
           hasAuth: !!supabase.auth,
           hasFunctions: !!supabase.functions,
@@ -457,7 +455,6 @@ export default function PricingCard({
           ],
       });
       console.error("Supabase client info:", {
-        supabaseUrl: supabase.supabaseUrl,
         hasAuth: !!supabase.auth,
       });
 

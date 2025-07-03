@@ -147,6 +147,11 @@ export default function ContentRepurposing({
 
   const loadData = async () => {
     try {
+      if (!supabase) {
+        console.error("Supabase client not available");
+        return;
+      }
+
       // Load original content with good performance
       const { data: contentData } = await supabase
         .from("content_queue")
@@ -316,6 +321,11 @@ export default function ContentRepurposing({
         hashtags: extractHashtags(repurposed.content),
         auto_post: true,
       };
+
+      if (!supabase) {
+        console.error("Supabase client not available");
+        return;
+      }
 
       const { error } = await supabase
         .from("content_queue")

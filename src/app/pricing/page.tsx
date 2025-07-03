@@ -358,6 +358,8 @@ export default function PricingPage({ searchParams }: PricingPageProps) {
     if (!supabase) return;
     
     const getUser = async () => {
+      if (!supabase) return;
+      
       try {
         const {
           data: { user },

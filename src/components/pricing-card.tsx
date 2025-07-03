@@ -152,6 +152,11 @@ export default function PricingCard({
 
   // Test function to verify Edge Function connectivity
   const testEdgeFunction = async () => {
+    if (!supabase) {
+      setTestResult("Test FAILED: Supabase client not available");
+      return;
+    }
+    
     try {
       console.log("Testing Edge Function connectivity...");
       console.log("Supabase client:", supabase);
@@ -318,8 +323,8 @@ export default function PricingCard({
         console.log("Invoking Edge Function:", "create-checkout");
         console.log("Payload:", checkoutPayload);
         console.log("Supabase client config:", {
-          hasAuth: !!supabase.auth,
-          hasFunctions: !!supabase.functions,
+          hasAuth: !!supabase?.auth,
+          hasFunctions: !!supabase?.functions,
         });
 
         let data, error;

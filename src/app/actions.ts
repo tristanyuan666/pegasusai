@@ -165,7 +165,6 @@ export const signInAction = async (formData: FormData) => {
       console.error("Error details:", {
         message: error.message,
         status: error.status,
-        code: error.__isAuthError ? "AuthError" : "Unknown",
       });
 
       // Handle specific Supabase auth errors with user-friendly messages

@@ -337,6 +337,11 @@ export default function ContentScheduler({
       return;
     }
 
+    if (!supabase) {
+      console.error("Supabase client not available");
+      return;
+    }
+
     try {
       const contentData = {
         ...formData,
@@ -406,6 +411,11 @@ export default function ContentScheduler({
 
   const deleteContent = async (contentId: string) => {
     try {
+      if (!supabase) {
+        console.error("Supabase client not available");
+        return;
+      }
+
       const { error } = await supabase
         .from("content_queue")
         .delete()
@@ -438,6 +448,11 @@ export default function ContentScheduler({
 
   const postNow = async (contentId: string) => {
     try {
+      if (!supabase) {
+        console.error("Supabase client not available");
+        return;
+      }
+
       const { error } = await supabase
         .from("content_queue")
         .update({

@@ -165,8 +165,8 @@ export default function EnhancedCursor({ className }: EnhancedCursorProps) {
     return () => {
       mountedRef.current = false;
       if (cleanup) cleanup();
-      if (rafId && window?.cancelAnimationFrame) {
-        cancelAnimationFrame(rafId);
+      if (typeof window !== "undefined" && typeof window.cancelAnimationFrame === "function" && rafId) {
+        window.cancelAnimationFrame(rafId);
       }
       if (mediaQueryCleanup) {
         mediaQueryCleanup();
@@ -297,8 +297,8 @@ export default function EnhancedCursor({ className }: EnhancedCursorProps) {
           document.documentElement.classList.remove("cursor-hidden");
         }
 
-        if (animationFrameId && window.cancelAnimationFrame) {
-          cancelAnimationFrame(animationFrameId);
+        if (typeof window !== "undefined" && typeof window.cancelAnimationFrame === "function" && animationFrameId) {
+          window.cancelAnimationFrame(animationFrameId);
         }
         if (typeof document !== "undefined") {
           document.removeEventListener("mousemove", updateCursorPosition);

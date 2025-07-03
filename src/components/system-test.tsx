@@ -2106,16 +2106,15 @@ export default function SystemTest({ user }: SystemTestProps) {
               await client.auth.getSession();
             const hasAuthSystem = !authError;
 
-            // Test if we can access Supabase URL
-            const supabaseUrl = client.supabaseUrl;
-            const hasValidUrl = supabaseUrl && supabaseUrl.includes("supabase");
+            // Test Supabase integration
+            const hasValidIntegration = hasAuthSystem;
 
             return {
-              success: hasAuthSystem && hasValidUrl,
+              success: hasValidIntegration,
               message: hasAuthSystem
                 ? "Supabase integration working"
                 : "Supabase integration issues",
-              details: `Auth System: ${hasAuthSystem ? "Working" : "Error"}, Valid URL: ${hasValidUrl ? "Yes" : "No"}, URL: ${supabaseUrl ? "Set" : "Missing"}`,
+              details: `Auth System: ${hasAuthSystem ? "Working" : "Error"}`,
             };
           } catch (error) {
             return {

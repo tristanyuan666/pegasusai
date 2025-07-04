@@ -19,6 +19,7 @@ import {
   ArrowLeft,
   CheckCircle,
   AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import PegasusLogo from "@/components/pegasus-logo";
 import LoadingSpinner from "@/components/loading-spinner";
@@ -35,17 +36,54 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [supabase, setSupabase] = useState<any>(null);
+  const [supabaseAvailable, setSupabaseAvailable] = useState<boolean | null>(null);
+  const [checkingSupabase, setCheckingSupabase] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const initSupabase = () => {
-      const client = createClient();
-      if (client) {
-        setSupabase(client);
+    const checkSupabaseAvailability = async () => {
+      try {
+        const client = createClient();
+        if (client) {
+          // Try a simple health check
+          const { data, error } = await client.from('users').select('count', { count: 'exact', head: true }).limit(1);
+          setSupabase(client);
+          setSupabaseAvailable(true);
+        } else {
+          setSupabaseAvailable(false);
+        }
+      } catch (error) {
+        console.error("Supabase health check failed:", error);
+        setSupabaseAvailable(false);
+      } finally {
+        setCheckingSupabase(false);
       }
     };
-    initSupabase();
+
+    checkSupabaseAvailability();
   }, []);
+
+  const retrySupabaseCheck = async () => {
+    setCheckingSupabase(true);
+    setSupabaseAvailable(null);
+    setError(null);
+    
+    try {
+      const client = createClient();
+      if (client) {
+        const { data, error } = await client.from('users').select('count', { count: 'exact', head: true }).limit(1);
+        setSupabase(client);
+        setSupabaseAvailable(true);
+      } else {
+        setSupabaseAvailable(false);
+      }
+    } catch (error) {
+      console.error("Supabase health check failed:", error);
+      setSupabaseAvailable(false);
+    } finally {
+      setCheckingSupabase(false);
+    }
+  };
 
   const validateForm = () => {
     if (!fullName.trim()) {
@@ -89,6 +127,11 @@ export default function SignUpPage() {
     e.preventDefault();
 
     if (!validateForm()) return;
+
+    if (!supabaseAvailable) {
+      setError("Authentication service is not available. Please check your connection and try again. If the problem persists, contact support.");
+      return;
+    }
 
     if (!supabase) {
       setError("Authentication service is not available. Please try again later.");
@@ -152,6 +195,79 @@ export default function SignUpPage() {
       setIsLoading(false);
     }
   };
+
+  // Show loading state while checking Supabase
+  if (checkingSupabase) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center p-6">
+        <Card className="p-8 shadow-xl border-0 bg-white/80 backdrop-blur-md max-w-md w-full text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-sm text-gray-600">Checking authentication service...</p>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show error state if Supabase is not available
+  if (supabaseAvailable === false) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center p-6">
+        <div className="w-full max-w-md">
+          {/* Back to Home */}
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors mb-8 hover-target interactive-element link"
+            data-interactive="true"
+            data-link="true"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Home</span>
+          </Link>
+
+          <Card className="p-8 shadow-xl border-0 bg-white/80 backdrop-blur-md">
+            {/* Logo */}
+            <div className="text-center mb-8">
+              <PegasusLogo size="lg" variant="full" />
+            </div>
+
+            <Alert className="mb-6 border-red-200 bg-red-50">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-700">
+                <strong>Authentication Service Unavailable</strong>
+                <br />
+                We're experiencing technical difficulties with our authentication service. This is likely due to a configuration issue.
+              </AlertDescription>
+            </Alert>
+            
+            <div className="space-y-4 text-center">
+              <p className="text-sm text-gray-600">
+                Please try again in a few moments, or contact support if the problem persists.
+              </p>
+              
+              <Button 
+                onClick={retrySupabaseCheck}
+                disabled={checkingSupabase}
+                className="w-full"
+                variant="outline"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${checkingSupabase ? 'animate-spin' : ''}`} />
+                {checkingSupabase ? 'Checking...' : 'Retry Connection'}
+              </Button>
+              
+              <div className="text-xs text-gray-500">
+                <p>If you continue to see this error, please:</p>
+                <ul className="mt-2 space-y-1 text-left">
+                  <li>• Check your internet connection</li>
+                  <li>• Try refreshing the page</li>
+                  <li>• Contact support if the issue persists</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (success) {
     return (
@@ -249,7 +365,7 @@ export default function SignUpPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
+                  placeholder="Enter your email address"
                   className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 hover-target interactive-element input"
                   data-interactive="true"
                   data-input="true"
@@ -283,9 +399,8 @@ export default function SignUpPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 hover-target interactive-element button"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 hover-target interactive-element"
                   data-interactive="true"
-                  data-button="true"
                   disabled={isLoading}
                 >
                   {showPassword ? (
@@ -296,8 +411,7 @@ export default function SignUpPage() {
                 </button>
               </div>
               <p className="text-xs text-gray-500">
-                Must be at least 8 characters with uppercase, lowercase, and
-                number
+                Must be at least 8 characters with uppercase, lowercase, and number
               </p>
             </div>
 
@@ -325,9 +439,8 @@ export default function SignUpPage() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 hover-target interactive-element button"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 hover-target interactive-element"
                   data-interactive="true"
-                  data-button="true"
                   disabled={isLoading}
                 >
                   {showConfirmPassword ? (
@@ -339,33 +452,33 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            <div className="flex items-start space-x-3">
+            <div className="flex items-center space-x-2">
               <Checkbox
                 id="terms"
                 checked={acceptTerms}
-                onCheckedChange={(checked) =>
-                  setAcceptTerms(checked as boolean)
-                }
-                className="mt-1 hover-target interactive-element input"
+                onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+                className="hover-target interactive-element"
                 data-interactive="true"
-                data-input="true"
                 disabled={isLoading}
               />
               <Label
                 htmlFor="terms"
-                className="text-sm text-gray-600 leading-relaxed"
+                className="text-sm text-gray-700 cursor-pointer hover-target interactive-element"
+                data-interactive="true"
               >
                 I agree to the{" "}
                 <Link
                   href="/terms"
-                  className="text-blue-600 hover:text-blue-700 underline"
+                  className="text-blue-600 hover:underline hover-target interactive-element"
+                  data-interactive="true"
                 >
                   Terms of Service
                 </Link>{" "}
                 and{" "}
                 <Link
                   href="/privacy"
-                  className="text-blue-600 hover:text-blue-700 underline"
+                  className="text-blue-600 hover:underline hover-target interactive-element"
+                  data-interactive="true"
                 >
                   Privacy Policy
                 </Link>
@@ -374,33 +487,34 @@ export default function SignUpPage() {
 
             <Button
               type="submit"
-              disabled={isLoading}
-              className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold transition-all duration-300 hover:shadow-lg hover-target interactive-element button"
+              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors hover-target interactive-element"
               data-interactive="true"
-              data-button="true"
+              data-auth-button="true"
+              data-signup-button="true"
+              disabled={isLoading}
             >
               {isLoading ? (
-                <LoadingSpinner size="sm" text="Creating account..." />
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Creating Account...
+                </div>
               ) : (
                 "Create Account"
               )}
             </Button>
-          </form>
 
-          {/* Sign In Link */}
-          <div className="mt-8 text-center">
-            <p className="text-gray-600">
-              Already have an account?{" "}
-              <Link
-                href="/sign-in"
-                className="text-blue-600 hover:text-blue-700 font-semibold transition-colors hover-target interactive-element link"
-                data-interactive="true"
-                data-link="true"
-              >
-                Sign in
-              </Link>
-            </p>
-          </div>
+            <div className="text-center text-sm text-gray-600">
+              <p>Already have an account?{" "}
+                <Link
+                  href="/sign-in"
+                  className="text-blue-600 hover:underline font-medium hover-target interactive-element"
+                  data-interactive="true"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          </form>
         </Card>
       </div>
     </div>

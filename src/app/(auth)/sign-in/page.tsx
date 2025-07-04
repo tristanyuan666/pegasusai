@@ -14,6 +14,10 @@ import {
 } from "@/components/form-validation";
 import SocialLogin from "@/components/social-login";
 import Link from "next/link";
+import { createClient } from "../../../supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface LoginProps {
   searchParams: Promise<Message & { error?: string; success?: string }>;
@@ -24,6 +28,8 @@ export default function SignInPage({ searchParams }: LoginProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [savedEmail, setSavedEmail] = useState("");
+  const [supabaseAvailable, setSupabaseAvailable] = useState<boolean | null>(null);
+  const [checkingSupabase, setCheckingSupabase] = useState(true);
 
   const { values, errors, setValue, setFieldTouched, validateForm } =
     useFormValidation(
@@ -33,6 +39,29 @@ export default function SignInPage({ searchParams }: LoginProps) {
         password: { required: true, minLength: 1 },
       },
     );
+
+  // Check Supabase availability on component mount
+  useEffect(() => {
+    const checkSupabaseAvailability = async () => {
+      try {
+        const supabase = createClient();
+        if (supabase) {
+          // Try a simple health check
+          const { data, error } = await supabase.from('users').select('count', { count: 'exact', head: true }).limit(1);
+          setSupabaseAvailable(true);
+        } else {
+          setSupabaseAvailable(false);
+        }
+      } catch (error) {
+        console.error("Supabase health check failed:", error);
+        setSupabaseAvailable(false);
+      } finally {
+        setCheckingSupabase(false);
+      }
+    };
+
+    checkSupabaseAvailability();
+  }, []);
 
   // Handle URL parameters for success and error messages
   React.useEffect(() => {
@@ -67,6 +96,15 @@ export default function SignInPage({ searchParams }: LoginProps) {
   const handleSubmit = async (formData: FormData) => {
     setIsLoading(true);
     setMessage(null);
+
+    // Check if Supabase is available before attempting sign in
+    if (!supabaseAvailable) {
+      setMessage({ 
+        error: "Authentication service is not available. Please check your connection and try again. If the problem persists, contact support." 
+      });
+      setIsLoading(false);
+      return;
+    }
 
     // Client-side validation
     const email = formData.get("email") as string;
@@ -105,6 +143,88 @@ export default function SignInPage({ searchParams }: LoginProps) {
       setIsLoading(false);
     }
   };
+
+  const retrySupabaseCheck = async () => {
+    setCheckingSupabase(true);
+    setSupabaseAvailable(null);
+    setMessage(null);
+    
+    try {
+      const supabase = createClient();
+      if (supabase) {
+        const { data, error } = await supabase.from('users').select('count', { count: 'exact', head: true }).limit(1);
+        setSupabaseAvailable(true);
+      } else {
+        setSupabaseAvailable(false);
+      }
+    } catch (error) {
+      console.error("Supabase health check failed:", error);
+      setSupabaseAvailable(false);
+    } finally {
+      setCheckingSupabase(false);
+    }
+  };
+
+  // Show loading state while checking Supabase
+  if (checkingSupabase) {
+    return (
+      <>
+        <Navbar />
+        <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8">
+          <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-sm text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-sm text-muted-foreground">Checking authentication service...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Show error state if Supabase is not available
+  if (supabaseAvailable === false) {
+    return (
+      <>
+        <Navbar />
+        <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8">
+          <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-sm">
+            <Alert className="mb-6 border-red-200 bg-red-50">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-700">
+                <strong>Authentication Service Unavailable</strong>
+                <br />
+                We're experiencing technical difficulties with our authentication service. This is likely due to a configuration issue.
+              </AlertDescription>
+            </Alert>
+            
+            <div className="space-y-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                Please try again in a few moments, or contact support if the problem persists.
+              </p>
+              
+              <Button 
+                onClick={retrySupabaseCheck}
+                disabled={checkingSupabase}
+                className="w-full"
+                variant="outline"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${checkingSupabase ? 'animate-spin' : ''}`} />
+                {checkingSupabase ? 'Checking...' : 'Retry Connection'}
+              </Button>
+              
+              <div className="text-xs text-muted-foreground">
+                <p>If you continue to see this error, please:</p>
+                <ul className="mt-2 space-y-1 text-left">
+                  <li>• Check your internet connection</li>
+                  <li>• Try refreshing the page</li>
+                  <li>• Contact support if the issue persists</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
